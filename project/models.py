@@ -1,6 +1,6 @@
 from django.db import models
 from datetime import datetime
-
+#Hola JENN
 class BaseEvento(models.Model):
     """
     Clase abstracta que representa los atributos y métodos comunes
