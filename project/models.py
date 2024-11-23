@@ -33,7 +33,7 @@ class BaseEvento(models.Model):
     class Meta:
         abstract = True  # Declara la clase como abstracta
 
-
+    
 class Concierto(BaseEvento):
     """
     Modelo que representa un concierto, hereda de BaseEvento.
