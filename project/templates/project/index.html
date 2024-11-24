@@ -1,407 +1,361 @@
-{% load static %}
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Eventos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
 <body>
-
-    <div class="container mt-5">
-        <h1>CRUD de Eventos</h1>
-
-        <!-- Formulario para Crear Evento -->
-        <h3>Crear Evento</h3>
+    <div class="container mt-4">
+        <h1>Gestión de Eventos</h1>
+        
+        <!-- Formulario de Creación de Evento -->
         <form id="formCrearEvento">
-            <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre del Evento</label>
+            <div class="form-group">
+                <label for="nombre">Nombre del Evento</label>
                 <input type="text" class="form-control" id="nombre" required>
             </div>
-            <div class="mb-3">
-                <label for="fecha" class="form-label">Fecha</label>
+            <div class="form-group">
+                <label for="fecha">Fecha</label>
                 <input type="datetime-local" class="form-control" id="fecha" required>
             </div>
-            <div class="mb-3">
-                <label for="lugar" class="form-label">Lugar</label>
+            <div class="form-group">
+                <label for="lugar">Lugar</label>
                 <input type="text" class="form-control" id="lugar" required>
             </div>
-            <div class="mb-3">
-                <label for="tipo" class="form-label">Tipo de Evento</label>
-                <select class="form-select" id="tipo" required>
-                    <option value="">Seleccione un tipo</option>
+            <div class="form-group">
+                <label for="tipo">Tipo de Evento</label>
+                <select class="form-control" id="tipo">
                     <option value="concierto">Concierto</option>
                     <option value="conferencia">Conferencia</option>
                 </select>
             </div>
-            <div class="mb-3" id="detalleEvento">
-                <!-- Campos específicos del tipo de evento se agregarán aquí -->
-            </div>
-            <button type="submit" class="btn btn-primary">Crear Evento</button>
+            <div id="detalleEvento"></div>
+            <button type="submit" class="btn btn-success">Crear Evento</button>
         </form>
 
-        <h3 class="mt-5">Lista de Eventos</h3>
-        <table class="table">
+        <hr>
+
+        <!-- Tablas para Conciertos y Conferencias -->
+        <h2>Conciertos</h2>
+        <table class="table table-bordered" id="tablaConciertos">
             <thead>
                 <tr>
                     <th>Nombre</th>
                     <th>Fecha</th>
                     <th>Lugar</th>
-                    <th>Tipo</th>
-                    <th>Detalles</th>
+                    <th>Artista</th>
+                    <th>Duración</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="tablaEventos">
-                <!-- Aquí se cargarán los eventos -->
+            <tbody>
+                <!-- Aquí se llenarán los conciertos -->
             </tbody>
         </table>
-    </div>
 
-<!-- Modal para Confirmar Eliminación -->
-<div class="modal fade" id="confirmarEliminacion" tabindex="-1" aria-labelledby="confirmarEliminacionLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmarEliminacionLabel">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                ¿Estás seguro de eliminar este evento?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmarEliminarBtn">Eliminar</button>
-            </div>
-        </div>
-    </div>
-</div>
+        <h2>Conferencias</h2>
+        <table class="table table-bordered" id="tablaConferencias">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Fecha</th>
+                    <th>Lugar</th>
+                    <th>Tema</th>
+                    <th>Orador</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se llenarán las conferencias -->
+            </tbody>
+        </table>
 
-
-    <!-- Modal para Editar Evento -->
-    <div class="modal fade" id="editarModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Editar Evento</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formEditarEvento">
-                        <input type="hidden" id="eventoId">
-                        <div class="mb-3">
-                            <label for="nombreEdit" class="form-label">Nombre del Evento</label>
-                            <input type="text" class="form-control" id="nombreEdit" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="fechaEdit" class="form-label">Fecha</label>
-                            <input type="datetime-local" class="form-control" id="fechaEdit" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="lugarEdit" class="form-label">Lugar</label>
-                            <input type="text" class="form-control" id="lugarEdit" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="tipoEdit" class="form-label">Tipo de Evento</label>
-                            <select class="form-select" id="tipoEdit" required>
-                                <option value="">Seleccione un tipo</option>
-                                <option value="concierto">Concierto</option>
-                                <option value="conferencia">Conferencia</option>
-                            </select>
-                        </div>
-                        <div class="mb-3" id="detalleEventoEdit">
-                            <!-- Campos específicos del tipo de evento se agregarán aquí -->
-                        </div>
-                        <button type="submit" class="btn btn-primary">Actualizar Evento</button>
-                    </form>
+        <!-- Modal de Edición de Evento -->
+        <div class="modal fade" id="editarModal" tabindex="-1" role="dialog" aria-labelledby="editarModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editarModalLabel">Editar Evento</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="formEditarEvento">
+                            <input type="hidden" id="eventoId">
+                            <div class="form-group">
+                                <label for="nombreEdit">Nombre del Evento</label>
+                                <input type="text" class="form-control" id="nombreEdit" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaEdit">Fecha</label>
+                                <input type="datetime-local" class="form-control" id="fechaEdit" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lugarEdit">Lugar</label>
+                                <input type="text" class="form-control" id="lugarEdit" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tipoEdit">Tipo de Evento</label>
+                                <select class="form-control" id="tipoEdit">
+                                    <option value="concierto">Concierto</option>
+                                    <option value="conferencia">Conferencia</option>
+                                </select>
+                            </div>
+                            <div id="detalleEventoEdit"></div>
+                            <button type="submit" class="btn btn-primary">Actualizar Evento</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Modal de Confirmación de Eliminación -->
+        <div class="modal fade" id="confirmarEliminacion" tabindex="-1" role="dialog" aria-labelledby="confirmarEliminacionLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmarEliminacionLabel">Confirmar Eliminación</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Estás seguro de que deseas eliminar este evento?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="button" id="confirmarEliminarBtn" class="btn btn-danger">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-    $(document).ready(function() {
-        let eventoIdActual = null;
-
-        function formatearFecha(fecha) {
-            return fecha ? new Date(fecha).toLocaleString('es-ES') : '';
-        }
-
-        function obtenerDetallesEvento(evento) {
-            if (evento.tipo === 'concierto') {
-                return `Artista: ${evento.artista || ''}<br>Duración: ${evento.duracion || ''} minutos`;
-            } else if (evento.tipo === 'conferencia') {
-                return `Tema: ${evento.tema || ''}<br>Orador: ${evento.orador || ''}`;
+        $(document).ready(function() {
+            let eventoIdActual = null;
+        
+            // Función para formatear la fecha
+            function formatearFecha(fecha) {
+                return new Date(fecha).toLocaleString('es-ES');
             }
-            return '';
-        }
-
-        function mostrarCamposEspecificos(tipo, esEdicion = false) {
-            const contenedor = esEdicion ? '#detalleEventoEdit' : '#detalleEvento';
-            $(contenedor).empty();
-            
-            if (tipo === 'concierto') {
-                $(contenedor).html(`
-                    <div class="mb-3">
-                        <label for="artista${esEdicion ? 'Edit' : ''}" class="form-label">Artista</label>
-                        <input type="text" class="form-control" id="artista${esEdicion ? 'Edit' : ''}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="duracion${esEdicion ? 'Edit' : ''}" class="form-label">Duración (minutos)</label>
-                        <input type="number" class="form-control" id="duracion${esEdicion ? 'Edit' : ''}" required>
-                    </div>
-                `);
-            } else if (tipo === 'conferencia') {
-                $(contenedor).html(`
-                    <div class="mb-3">
-                        <label for="tema${esEdicion ? 'Edit' : ''}" class="form-label">Tema</label>
-                        <input type="text" class="form-control" id="tema${esEdicion ? 'Edit' : ''}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="orador${esEdicion ? 'Edit' : ''}" class="form-label">Orador</label>
-                        <input type="text" class="form-control" id="orador${esEdicion ? 'Edit' : ''}" required>
-                    </div>
-                `);
-            }
-        }
-
-        $('#tipo').change(function() {
-            mostrarCamposEspecificos($(this).val());
-        });
-
-        $('#tipoEdit').change(function() {
-            mostrarCamposEspecificos($(this).val(), true);
-        });
-
-        // Función para cargar los eventos desde las APIs de conciertos y conferencias
-        function cargarEventos() {
-            const urlConciertos = '/api/conciertos/';
-            const urlConferencias = '/api/conferencias/';
-            
-            $.when(
-                $.ajax({ url: urlConciertos, method: 'GET' }),
-                $.ajax({ url: urlConferencias, method: 'GET' })
-            ).then(function(conciertosData, conferenciasData) {
-                const eventos = [...conciertosData[0], ...conferenciasData[0]];
-                $('#tablaEventos').empty();
-                eventos.forEach(evento => {
-                    const detalles = obtenerDetallesEvento(evento);
-                    $('#tablaEventos').append(`
-                        <tr>
-                            <td>${evento.nombre}</td>
-                            <td>${formatearFecha(evento.fecha)}</td>
-                            <td>${evento.lugar}</td>
-                            <td>${evento.tipo}</td>
-                            <td>${detalles}</td>
-                            <td>
-                                <button class="btn btn-primary btn-sm" onclick="editarEvento(${evento.id})">Editar</button>
-                                <button class="btn btn-danger btn-sm" onclick="eliminarEvento(${evento.id}, '${evento.tipo}')">Eliminar</button>
-
-                            </td>
-                        </tr>
+        
+            // Mostrar campos específicos dependiendo del tipo de evento
+            function mostrarCamposEspecificos(tipo, esEdicion = false) {
+                const contenedor = esEdicion ? '#detalleEventoEdit' : '#detalleEvento';
+                $(contenedor).empty();
+        
+                if (tipo === 'concierto') {
+                    $(contenedor).html(`
+                        <div class="form-group">
+                            <label for="artista${esEdicion ? 'Edit' : ''}">Artista</label>
+                            <input type="text" class="form-control" id="artista${esEdicion ? 'Edit' : ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="duracion${esEdicion ? 'Edit' : ''}">Duración (minutos)</label>
+                            <input type="number" class="form-control" id="duracion${esEdicion ? 'Edit' : ''}" required>
+                        </div>
                     `);
-                });
-            }, function(error) {
-                console.error('Error al cargar los eventos:', error);
-            });
-        }
-
-        // Llamar a cargarEventos al cargar la página
-        cargarEventos();
-
-
-// -----------------------------------------------------------------------------------------------------
-
-
-// Función para editar un evento
-window.editarEvento = function(id) {
-    eventoIdActual = id;
-    
-    // Llamamos a las APIs de conciertos y conferencias para obtener el evento
-    const urlConcierto = `/api/conciertos/${id}/`;
-    const urlConferencia = `/api/conferencias/${id}/`;
-    
-    // Intentar obtener el evento desde la API de conciertos
-    $.ajax({
-        url: urlConcierto,
-        method: 'GET',
-        success: function(evento) {
-            // Si es un concierto, procesamos y mostramos los detalles
-            $('#eventoId').val(evento.id);
-            $('#nombreEdit').val(evento.nombre);
-            $('#fechaEdit').val(evento.fecha);
-            $('#lugarEdit').val(evento.lugar);
-            $('#tipoEdit').val('concierto');
-            mostrarCamposEspecificos('concierto', true);
-            $('#artistaEdit').val(evento.artista);
-            $('#duracionEdit').val(evento.duracion);
-            $('#editarModal').modal('show');
-        },
-        error: function() {
-            // Si no lo encontramos como concierto, intentar como conferencia
-            $.ajax({
-                url: urlConferencia,
-                method: 'GET',
-                success: function(evento) {
-                    // Si es una conferencia, procesamos y mostramos los detalles
-                    $('#eventoId').val(evento.id);
-                    $('#nombreEdit').val(evento.nombre);
-                    $('#fechaEdit').val(evento.fecha);
-                    $('#lugarEdit').val(evento.lugar);
-                    $('#tipoEdit').val('conferencia');
-                    mostrarCamposEspecificos('conferencia', true);
-                    $('#temaEdit').val(evento.tema);
-                    $('#oradorEdit').val(evento.orador);
-                    $('#editarModal').modal('show');
-                },
-                error: function() {
-                    console.error('Error al obtener el evento');
+                } else if (tipo === 'conferencia') {
+                    $(contenedor).html(`
+                        <div class="form-group">
+                            <label for="tema${esEdicion ? 'Edit' : ''}">Tema</label>
+                            <input type="text" class="form-control" id="tema${esEdicion ? 'Edit' : ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="orador${esEdicion ? 'Edit' : ''}">Orador</label>
+                            <input type="text" class="form-control" id="orador${esEdicion ? 'Edit' : ''}" required>
+                        </div>
+                    `);
                 }
+            }
+        
+            // Cambiar los campos específicos según el tipo de evento
+            $('#tipo').change(function() {
+                mostrarCamposEspecificos($(this).val());
             });
-        }
-    });
-}
+        
+            $('#tipoEdit').change(function() {
+                mostrarCamposEspecificos($(this).val(), true);
+            });
+        
+            // Crear evento
+            $('#formCrearEvento').submit(function(event) {
+                event.preventDefault();
+                const evento = {
+                    nombre: $('#nombre').val(),
+                    fecha: $('#fecha').val(),
+                    lugar: $('#lugar').val(),
+                    tipo: $('#tipo').val(),
+                    artista: $('#artista').val(),
+                    duracion: $('#duracion').val(),
+                    tema: $('#tema').val(),
+                    orador: $('#orador').val()
+                };
+        
+                const url = evento.tipo === 'concierto' ? '/api/conciertos/' : '/api/conferencias/';
+        
+                // Enviar datos al backend
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: JSON.stringify(evento),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        cargarEventos(); // Recargar eventos después de crear uno nuevo
+                        // Limpiar el formulario
+                        $('#formCrearEvento')[0].reset(); // Limpia todos los campos del formulario
+                        $('#detalleEvento').empty(); // Limpia los campos específicos (como Artista, Duración, Tema, etc.)
+                        $('#tipo').val('concierto'); // Restablecer tipo de evento a "concierto" por defecto
+                    },
+                    error: function() {
+                        alert('Error al crear el evento');
+                    }
+                });
+            });
+        
+            // Cargar eventos
+            function cargarEventos() {
+                $.ajax({
+                    url: '/api/conciertos/',
+                    method: 'GET',
+                    success: function(conciertos) {
+                        $('#tablaConciertos tbody').empty();
+                        conciertos.forEach(function(concierto) {
+                            const fechaFormateada = formatearFecha(concierto.fecha);
+                            $('#tablaConciertos tbody').append(`
+                                <tr data-id="${concierto.id}">
+                                    <td>${concierto.nombre}</td>
+                                    <td>${fechaFormateada}</td>
+                                    <td>${concierto.lugar}</td>
+                                    <td>${concierto.artista}</td>
+                                    <td>${concierto.duracion}</td>
+                                    <td>
+                                        <button class="btn btn-warning btn-editar" data-id="${concierto.id}">Editar</button>
+                                        <button class="btn btn-danger btn-eliminar" data-id="${concierto.id}">Eliminar</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                });
+        
+                $.ajax({
+                    url: '/api/conferencias/',
+                    method: 'GET',
+                    success: function(conferencias) {
+                        $('#tablaConferencias tbody').empty();
+                        conferencias.forEach(function(conferencia) {
+                            const fechaFormateada = formatearFecha(conferencia.fecha);
+                            $('#tablaConferencias tbody').append(`
+                                <tr data-id="${conferencia.id}">
+                                    <td>${conferencia.nombre}</td>
+                                    <td>${fechaFormateada}</td>
+                                    <td>${conferencia.lugar}</td>
+                                    <td>${conferencia.tema}</td>
+                                    <td>${conferencia.orador}</td>
+                                    <td>
+                                        <button class="btn btn-warning btn-editar" data-id="${conferencia.id}">Editar</button>
+                                        <button class="btn btn-danger btn-eliminar" data-id="${conferencia.id}">Eliminar</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                });
+            }
+        
+            // Eliminar evento
+            $(document).on('click', '.btn-eliminar', function() {
+                const id = $(this).data('id');
+                const tipo = $(this).closest('table').attr('id') === 'tablaConciertos' ? 'concierto' : 'conferencia';
+                $('#confirmarEliminacion').modal('show');
+                $('#confirmarEliminarBtn').data('id', id).data('tipo', tipo);
+            });
+        
+            // Confirmar eliminación
+            $('#confirmarEliminarBtn').click(function() {
+                const id = $(this).data('id');
+                const tipo = $(this).data('tipo');
+                const url = tipo === 'concierto' ? `/api/conciertos/${id}/` : `/api/conferencias/${id}/`;
+        
+                $.ajax({
+                    url: url,
+                    method: 'DELETE',
+                    success: function() {
+                        cargarEventos(); // Recargar eventos después de eliminar
+                        $('#confirmarEliminacion').modal('hide');
+                    },
+                    error: function() {
+                        alert('Error al eliminar el evento');
+                    }
+                });
+            });
+        
+            // Editar evento
+            $(document).on('click', '.btn-editar', function() {
+                const id = $(this).data('id');
+                const tipo = $(this).closest('table').attr('id') === 'tablaConciertos' ? 'concierto' : 'conferencia';
+        
+                // Cargar el evento para editar
+                $.ajax({
+                    url: tipo === 'concierto' ? `/api/conciertos/${id}/` : `/api/conferencias/${id}/`,
+                    method: 'GET',
+                    success: function(evento) {
+                        eventoIdActual = evento.id;
+                        $('#nombreEdit').val(evento.nombre);
+                        $('#fechaEdit').val(evento.fecha);
+                        $('#lugarEdit').val(evento.lugar);
+                        $('#tipoEdit').val(evento.tipo).change();
+                        $('#artistaEdit').val(evento.artista || '');
+                        $('#duracionEdit').val(evento.duracion || '');
+                        $('#temaEdit').val(evento.tema || '');
+                        $('#oradorEdit').val(evento.orador || '');
+                        $('#editarModal').modal('show');
+                    }
+                });
+            });
+        
+            // Actualizar evento
+            $('#formEditarEvento').submit(function(event) {
+                event.preventDefault();
+                const evento = {
+                    nombre: $('#nombreEdit').val(),
+                    fecha: $('#fechaEdit').val(),
+                    lugar: $('#lugarEdit').val(),
+                    tipo: $('#tipoEdit').val(),
+                    artista: $('#artistaEdit').val(),
+                    duracion: $('#duracionEdit').val(),
+                    tema: $('#temaEdit').val(),
+                    orador: $('#oradorEdit').val()
+                };
+        
+                const url = evento.tipo === 'concierto' ? `/api/conciertos/${eventoIdActual}/` : `/api/conferencias/${eventoIdActual}/`;
+        
+                $.ajax({
+                    url: url,
+                    method: 'PUT',
+                    data: JSON.stringify(evento),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        cargarEventos(); // Recargar eventos después de actualizar uno
+                        $('#editarModal').modal('hide');
+                    },
+                    error: function() {
+                        alert('Error al actualizar el evento');
+                    }
+                });
+            });
 
-
-// Función para actualizar el evento
-$('#formEditarEvento').submit(function(e) {
-    e.preventDefault();
-    
-    // Recoger los datos del formulario
-    const evento = {
-        id: $('#eventoId').val(),
-        nombre: $('#nombreEdit').val(),
-        fecha: $('#fechaEdit').val(),
-        lugar: $('#lugarEdit').val(),
-        tipo: $('#tipoEdit').val(),
-        artista: $('#artistaEdit').val(),
-        duracion: $('#duracionEdit').val(),
-        tema: $('#temaEdit').val(),
-        orador: $('#oradorEdit').val()
-    };
-
-    // Definir la URL de la API de acuerdo al tipo de evento
-    let url = '';
-    if (evento.tipo === 'concierto') {
-        url = `/api/conciertos/${evento.id}/`; // Para conciertos
-    } else if (evento.tipo === 'conferencia') {
-        url = `/api/conferencias/${evento.id}/`; // Para conferencias
-    }
-
-    // Enviar la solicitud de actualización (PUT)
-    $.ajax({
-        url: url,
-        method: 'PUT',
-        data: evento,
-        success: function() {
-            $('#editarModal').modal('hide'); // Cerrar el modal
-            cargarEventos(); // Recargar la lista de eventos
-        },
-        error: function(error) {
-            console.error('Error al actualizar el evento:', error);
-        }
-    });
-});
-
-// -----------------------------------------------------------------------------------------------------
-// Función para eliminar un evento
-window.eliminarEvento = function(id, tipo) {
-    // Guardamos los datos del evento a eliminar para usarlos cuando el usuario confirme
-    window.eventoAEliminar = { id: id, tipo: tipo };
-
-    // Mostrar el modal de confirmación
-    $('#confirmarEliminacion').modal('show');
-};
-
-// Función para manejar la eliminación después de confirmar
-$('#confirmarEliminarBtn').off('click').on('click', function() {
-    const evento = window.eventoAEliminar;
-
-    if (!evento) {
-        console.log("No se ha seleccionado un evento para eliminar.");
-        return; // Si no hay evento seleccionado, no hacer nada
-    }
-
-    let url = '';
-    if (evento.tipo === 'concierto') {
-        url = `/api/conciertos/${evento.id}/`; // URL para eliminar un concierto
-    } else if (evento.tipo === 'conferencia') {
-        url = `/api/conferencias/${evento.id}/`; // URL para eliminar una conferencia
-    } else {
-        console.log("Tipo de evento no reconocido.");
-        return; // Si el tipo no es reconocido, salir
-    }
-
-    console.log(`Eliminando evento en la URL: ${url}`); // Para depuración, muestra la URL de la solicitud
-
-    // Realizar la solicitud DELETE para eliminar el evento
-    $.ajax({
-        url: url,
-        method: 'DELETE',
-        success: function() {
-            // Recargar los eventos para reflejar los cambios
+            // Inicializar carga de eventos
             cargarEventos();
-            // Cerrar el modal
-            $('#confirmarEliminacion').modal('hide');
-        },
-        error: function(error) {
-            console.error('Error al eliminar el evento:', error);
-        }
-    });
-
-    // Limpiar la referencia al evento después de procesarlo
-    window.eventoAEliminar = null;
-});
-
-
-// -----------------------------------------------------------------------------------------------------
-        // Función para crear un nuevo evento
-$('#formCrearEvento').submit(function(e) {
-    e.preventDefault();
-    
-    // Recoger los datos del formulario
-    const evento = {
-        nombre: $('#nombre').val(),
-        fecha: $('#fecha').val(),
-        lugar: $('#lugar').val(),
-        tipo: $('#tipo').val(),
-        artista: $('#artista').val(),
-        duracion: $('#duracion').val(),
-        tema: $('#tema').val(),
-        orador: $('#orador').val()
-    };
-
-    // Definir la URL de la API según el tipo de evento
-    let url = '';
-    if (evento.tipo === 'concierto') {
-        url = '/api/conciertos/'; // URL para crear un concierto
-    } else if (evento.tipo === 'conferencia') {
-        url = '/api/conferencias/'; // URL para crear una conferencia
-    }
-
-    // Realizar la solicitud POST para crear el evento
-    $.ajax({
-        url: url,
-        method: 'POST',
-        data: evento,
-        success: function() {
-            cargarEventos(); // Recargar la lista de eventos
-            $('#formCrearEvento')[0].reset(); // Limpiar el formulario
-        },
-        error: function(error) {
-            console.error('Error al crear el evento:', error);
-        }
-    });
-});
-
-
-
-    });
+        });
     </script>
-
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

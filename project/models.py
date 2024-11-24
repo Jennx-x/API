@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import datetime
+
 class BaseEvento(models.Model):
     """
     Clase abstracta que representa los atributos y métodos comunes
@@ -33,7 +34,7 @@ class BaseEvento(models.Model):
     class Meta:
         abstract = True  # Declara la clase como abstracta
 
-    
+
 class Concierto(BaseEvento):
     """
     Modelo que representa un concierto, hereda de BaseEvento.
@@ -47,6 +48,9 @@ class Concierto(BaseEvento):
         """
         base_info = super().mostrar_info()  # Llama al método de la clase base
         return f"{base_info}, Artista: {self.artista}, Duración: {self.duracion} minutos"
+
+    # Cambios opcionales si necesitas un campo para diferenciar tipo de evento:
+    tipo_evento = 'Concierto'
 
 
 class Conferencia(BaseEvento):
@@ -62,3 +66,6 @@ class Conferencia(BaseEvento):
         """
         base_info = super().mostrar_info()  # Llama al método de la clase base
         return f"{base_info}, Tema: {self.tema}, Orador: {self.orador}"
+
+    # Cambios opcionales si necesitas un campo para diferenciar tipo de evento:
+    tipo_evento = 'Conferencia'

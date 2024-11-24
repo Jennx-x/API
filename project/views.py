@@ -40,20 +40,18 @@ def crear_evento(request):
 
     return render(request, 'index.html', {'form': form})
 
-
 # Vista para listar eventos (Conciertos y Conferencias)
-
 def listar_evento(request):
     # Obtener los conciertos y conferencias
     conciertos = Concierto.objects.all()
     conferencias = Conferencia.objects.all()
-    
-    # Crear una lista combinada de eventos con tipo_evento agregado
+
     eventos = []
 
+    # Agregar conciertos a la lista de eventos
     for concierto in conciertos:
         evento = {
-            'tipo_evento': 'Concierto',
+            'tipo_evento': 'concierto',  # Se agrega el tipo de evento explícitamente
             'nombre': concierto.nombre,
             'fecha': concierto.fecha,
             'lugar': concierto.lugar,
@@ -62,9 +60,10 @@ def listar_evento(request):
         }
         eventos.append(evento)
 
+    # Agregar conferencias a la lista de eventos
     for conferencia in conferencias:
         evento = {
-            'tipo_evento': 'Conferencia',
+            'tipo_evento': 'conferencia',  # Se agrega el tipo de evento explícitamente
             'nombre': conferencia.nombre,
             'fecha': conferencia.fecha,
             'lugar': conferencia.lugar,
@@ -79,18 +78,29 @@ def listar_evento(request):
 @csrf_exempt
 def actualizar_evento(request, evento_id):
     if request.method == 'PUT':
-        evento = get_object_or_404(Concierto, id=evento_id) if 'concierto' in request.path else get_object_or_404(Conferencia, id=evento_id)
+        # Intentar obtener el evento como un Concierto o Conferencia
+        try:
+            evento = Concierto.objects.get(id=evento_id)
+            evento_tipo = 'concierto'
+        except Concierto.DoesNotExist:
+            evento = get_object_or_404(Conferencia, id=evento_id)
+            evento_tipo = 'conferencia'
+
         data = json.loads(request.body)
 
+        # Actualizar campos comunes
         evento.nombre = data.get('nombre', evento.nombre)
         evento.fecha = data.get('fecha', evento.fecha)
         evento.lugar = data.get('lugar', evento.lugar)
-        if isinstance(evento, Concierto):
+
+        # Actualizar campos específicos de concierto o conferencia
+        if evento_tipo == 'concierto':
             evento.artista = data.get('artista', evento.artista)
             evento.duracion = data.get('duracion', evento.duracion)
-        else:
+        else:  # Si es conferencia
             evento.tema = data.get('tema', evento.tema)
             evento.orador = data.get('orador', evento.orador)
+
         evento.save()
 
         return JsonResponse({'message': 'Evento actualizado con éxito', 'evento': evento.id})
@@ -100,6 +110,12 @@ def actualizar_evento(request, evento_id):
 @csrf_exempt
 def eliminar_evento(request, evento_id):
     if request.method == 'DELETE':
-        evento = get_object_or_404(Concierto, id=evento_id) if 'concierto' in request.path else get_object_or_404(Conferencia, id=evento_id)
+        # Intentar obtener el evento como un Concierto o Conferencia
+        try:
+            evento = Concierto.objects.get(id=evento_id)
+        except Concierto.DoesNotExist:
+            evento = get_object_or_404(Conferencia, id=evento_id)
+
         evento.delete()
+
         return JsonResponse({'message': 'Evento eliminado con éxito'})
